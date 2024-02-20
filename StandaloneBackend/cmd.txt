@@ -1,0 +1,9 @@
+// Docker Build 
+docker build -t dependalayzer .
+
+// Docker Interactive mode
+docker run --hostname dependalayzer -it dependalayzer Destro-Sec karuppan-the-pentester VNF "python" https://github.com/karuppan-the-pentester/VanakkamNanbaFW.git bash
+
+// Docker Detach mode
+docker run --hostname dependalayzer -dit dependalayzer hacker_tamizhan bash
+
