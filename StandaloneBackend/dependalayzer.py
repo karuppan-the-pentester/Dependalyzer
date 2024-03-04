@@ -1,45 +1,75 @@
 import os
 import subprocess
-from urllib.parse import urlparse
 import sys
+import ast
+from urllib.parse import urlparse
 
 def install_dependency(package):
     subprocess.run(['pip', 'install', package])
-    subprocess.run(['pip', 'freeze', '>', 'requirements.txt'], shell=True)
+
+def scan_repo_for_dependencies(repo_path):
+    dependencies = set()
+
+    for root, dirs, files in os.walk(repo_path):
+        for file in files:
+            if file.endswith('.py'):
+                file_path = os.path.join(root, file)
+                file_dependencies = scan_file_for_dependencies(file_path)
+                dependencies.update(file_dependencies)
+
+    return dependencies
+
+def scan_file_for_dependencies(file_path):
+    with open(file_path, 'r') as file:
+        content = file.read()
+        tree = ast.parse(content, filename=file_path)
+
+    dependencies = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                dependencies.add(alias.name)
+        elif isinstance(node, ast.ImportFrom):
+            dependencies.add(node.module)
+
+    return dependencies
 
 def run_project(git_url):
     # Parse the Git URL to extract the repository name
     parsed_url = urlparse(git_url)
     repo_name = os.path.splitext(os.path.basename(parsed_url.path))[0]
-    
+
     # Move into the cloned repository directory
     os.chdir(repo_name)
 
-    # Check if there's a main file to run (adjust as needed)
-    main_files = ['Vanakkam_NanbaFW.py', 'app.py']
-    for main_file in main_files:
-        if os.path.isfile(main_file):
-            try:
-                # Run the project
-                subprocess.run(['python3', main_file])
-            except ModuleNotFoundError as e:
-                # Extract the missing module name from the error message
-                missing_module = str(e).split("'")[1]
-                print(f"Installing missing dependency: {missing_module}")
-                
-                # Install the missing module
-                install_dependency(missing_module)
-                
-                # Retry running the project
-                subprocess.run(['python3', main_file])
-            break
-    else:
-        print(f"No main file found in {repo_name}")
+    # Scan the entire repository for dependencies
+    dependencies = scan_repo_for_dependencies(os.getcwd())
+
+    # Collect local dependencies (starting with dot '.')
+    local_dependencies = {dep for dep in dependencies if dep.startswith('.')}
+
+    # Create requirements.txt file
+    with open('requirements.txt', 'w') as req_file:
+        for dep in dependencies:
+            req_file.write(dep + '\n')
+
+    # Install all dependencies
+    for dep in dependencies:
+        install_dependency(dep)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python3 script.py <git_url>")
+        print("Usage: python3 script.py --url=<git_url>")
         sys.exit(1)
 
-    git_url = sys.argv[1]  
+    git_url = None
+
+    for arg in sys.argv[1:]:
+        if arg.startswith("--url="):
+            git_url = arg.split("=")[1]
+
+    if not git_url:
+        print("Invalid arguments. Use --url=<git_url>")
+        sys.exit(1)
+
     run_project(git_url)

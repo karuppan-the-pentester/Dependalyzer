@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Sharing Platform</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        .project-info {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .project-card {
+            background-color: #fff;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .copy-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
+        .copy-success {
+            color: green;
+        }
+        .command-display {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .description {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Dependalayzer</h1>
+</header>
+
+<div class="container">
+    <!-- Project Info Section -->
+    <div class="project-info">
+        <h2>Project: VanakkamNanbaFW</h2>
+        <p>Username: Karuppasamy K</p>
+        <p>Tech Stack: python3</p>
+    </div>
+
+    <!-- Project Cards Section -->
+    <div id="projectCards"></div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Sample project details
+        const username = "karuppan-the-pentester";
+        const projectName = "VanakkamNanbaFW";
+        const techStack = "python3";
+
+        // Sample commands and descriptions
+        const commands = [
+            { description: "Initial setup", command: `git clone https://github.com/${username}/${projectName}.git && cd ${projectName} ` },
+            { description: "install colored Lib", command: "pip3 install colored" },
+            // Add more commands as needed
+        ];
+
+        // Create project cards dynamically
+        const projectCardsContainer = document.getElementById("projectCards");
+
+        commands.forEach((command, index) => {
+            const projectCard = document.createElement("div");
+            projectCard.className = "project-card";
+            projectCard.id = `project${index + 1}`;
+
+            const commandDisplay = document.createElement("div");
+            commandDisplay.className = "command-display";
+            commandDisplay.innerHTML = `<pre>${command.command}</pre>`;
+
+            const copyButton = document.createElement("button");
+            copyButton.className = "copy-button";
+            copyButton.innerText = "Copy Command to Terminal";
+            copyButton.onclick = () => copyToClipboard(command.command);
+
+            const copyStatus = document.createElement("p");
+            copyStatus.className = "copy-success";
+
+            const descriptionElement = document.createElement("p");
+            descriptionElement.className = "description";
+            descriptionElement.innerText = `${command.description}`;
+
+            projectCard.appendChild(commandDisplay);
+            projectCard.appendChild(copyButton);
+            projectCard.appendChild(copyStatus);
+            projectCard.appendChild(descriptionElement);
+
+            projectCardsContainer.appendChild(projectCard);
+        });
+    });
+
+    function copyToClipboard(command) {
+        // Create a temporary textarea element and set its value to the command text
+        const textarea = document.createElement("textarea");
+        textarea.value = command;
+
+        // Append the textarea to the document
+        document.body.appendChild(textarea);
+
+        // Select the text in the textarea
+        textarea.select();
+        textarea.setSelectionRange(0, 99999); // For mobile devices
+
+        // Copy the selected text to the clipboard
+        document.execCommand("copy");
+
+        // Remove the temporary textarea
+        document.body.removeChild(textarea);
+
+        // Display success message
+        const copyStatus = document.querySelector(".copy-success");
+        copyStatus.innerText = "Command copied to clipboard!";
+        setTimeout(() => {
+            copyStatus.innerText = "";
+        }, 3000);
+    }
+</script>
+
+</body>
+</html>
